@@ -1,0 +1,16 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": null,
+    "title": "AI Data Analytics — Sample Sensor Dashboard",
+    "timezone": "browser",
+    "panels": [
+      {
+        "type": "graph",
+        "title": "Sensor value",
+        "gridPos": {"x": 0, "y": 0, "w": 24, "h": 9},
+        "targets": []
+      }
+    ]
+  }
+}
