@@ -1,11 +1,12 @@
 import streamlit as st
 import pandas as pd
 import os
-from datetime import datetime
 import matplotlib.pyplot as plt
+import numpy as np
+from datetime import datetime
 
 st.set_page_config(page_title='AI Data Analytics - Streamlit Demo')
-st.title('AI Data Analytics — Streamlit Demo')
+st.title('AI Data Analytics — Streamlit Demo (statsmodels)')
 
 os.makedirs('data', exist_ok=True)
 HISTORY_PATH = 'data/history.csv'
@@ -48,19 +49,60 @@ if os.path.exists(HISTORY_PATH):
 
         st.line_chart(df_ts.set_index('ds')['y'])
 
-        if st.button('Run Prophet forecast (uses open-source Prophet)'):
+        if st.button('Run Forecast (statsmodels - Holt-Winters)'):
             try:
-                from prophet import Prophet
-                m = Prophet()
-                m.fit(df_ts)
-                future = m.make_future_dataframe(periods=30)
-                forecast = m.predict(future)
-                st.write(forecast[['ds','yhat','yhat_lower','yhat_upper']].tail(30))
+                from statsmodels.tsa.holtwinters import ExponentialSmoothing
 
-                fig = m.plot(forecast)
+                # Prepare time series: set index and ensure regular daily frequency (fill gaps)
+                ts = df_ts.set_index('ds')['y']
+
+                # If index does not have a regular freq, resample to daily and interpolate
+                try:
+                    inferred = pd.infer_freq(ts.index)
+                except Exception:
+                    inferred = None
+
+                if inferred is None:
+                    ts = ts.resample('D').mean().interpolate()
+                else:
+                    ts = ts.asfreq(inferred).interpolate()
+
+                # Choose seasonal period if enough data (weekly seasonality default)
+                seasonal_periods = 7 if len(ts) >= 14 else None
+
+                if seasonal_periods:
+                    model = ExponentialSmoothing(ts, trend='add', seasonal='add', seasonal_periods=seasonal_periods)
+                else:
+                    model = ExponentialSmoothing(ts, trend='add', seasonal=None)
+
+                fit = model.fit(optimized=True)
+                periods = 30
+                forecast = fit.forecast(periods)
+
+                # Estimate simple prediction intervals using residual std
+                resid = fit.resid.dropna()
+                se = resid.std() if len(resid) > 0 else 0.0
+                z = 1.96
+                forecast_df = pd.DataFrame({
+                    'ds': forecast.index,
+                    'yhat': forecast.values,
+                    'yhat_lower': forecast.values - z * se,
+                    'yhat_upper': forecast.values + z * se,
+                })
+
+                st.write(forecast_df.tail(periods))
+
+                # Plot history + forecast
+                fig, ax = plt.subplots(figsize=(10, 4))
+                ts.plot(label='history', ax=ax)
+                forecast.plot(label='forecast', ax=ax)
+                ax.fill_between(forecast.index, forecast_df['yhat_lower'], forecast_df['yhat_upper'], color='gray', alpha=0.2)
+                ax.legend()
+                ax.set_title('History and forecast')
                 st.pyplot(fig)
+
             except Exception as e:
-                st.error('Prophet forecast failed: ' + str(e) + '\nMake sure the `prophet` package is installed.')
+                st.error('Forecast failed: ' + str(e))
 
     # Simple automated summary (rule-based) as a lightweight "AI" fallback
     st.subheader('Automated summary (rule-based)')
