@@ -1,5 +1,7 @@
 # AI Data Analytics Demos
 
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/US123456US/aidataanalytics-demos/main/streamlit_app.py)
+
 This repository contains three runnable, open-source demos for AI-powered data analytics (fully free/open-source components). Demos:
 
 - Streamlit interactive demo (streamlit_app.py)
@@ -11,8 +13,9 @@ Each demo includes a small example dataset and quick start instructions below.
 Quick start (recommended order)
 
 1) Streamlit demo (interactive)
-   - Install: python -m pip install -r requirements.txt
-   - Run: streamlit run streamlit_app.py
+   - Click the badge above to open the app on Streamlit Community Cloud (you may need to log into Streamlit). Or run locally:
+     - Install: python -m pip install -r requirements.txt
+     - Run: streamlit run streamlit_app.py
 
 2) Jupyter demo
    - Install: python -m pip install -r requirements-notebook.txt
@@ -42,4 +45,3 @@ Files in this commit:
 - data/stock_aapl_sample.csv
 - data/iot_sensor_sample.csv
 - README.md (this file)
-
