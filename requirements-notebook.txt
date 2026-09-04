@@ -1,5 +1,6 @@
 jupyterlab
 pandas
 matplotlib
-prophet
+numpy
+statsmodels
 ipykernel
